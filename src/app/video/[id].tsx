@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // @ts-ignore
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { MOCK_VIDEOS } from '../../constants/mockData';
 
 export default function VideoScreen() {
@@ -41,26 +41,94 @@ export default function VideoScreen() {
         {/* Título do Vídeo */}
         <Text style={styles.title}>{video.title}</Text>
 
-        {/* Estatísticas */}
+        {/* Estatísticas e Meta-informações */}
         <Text style={styles.metrics}>
           {video.views} • {video.postedAt}
         </Text>
 
         {/* Informações do Canal */}
-        <TouchableOpacity style={styles.channelContainer} onPress={handleChannelPress}>
-          <Image source={{ uri: video.channel.avatar }} style={styles.avatar} />
-          <View style={styles.channelInfo}>
-            <Text style={styles.channelName}>{video.channel.name}</Text>
-            <Text style={styles.subscribers}>{video.channel.subscribers}</Text>
+        <View style={styles.channelContainer}>
+          <TouchableOpacity style={styles.channelLeft} onPress={handleChannelPress}>
+            <Image source={{ uri: video.channel.avatar }} style={styles.avatar} />
+            <View style={styles.channelInfo}>
+              <Text style={styles.channelName}>{video.channel.name}</Text>
+              <Text style={styles.subscribers}>{video.channel.subscribers}</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.subscribeActions}>
+            <TouchableOpacity style={styles.bellButton}>
+              <Feather name="bell" size={18} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.subscribeButton}>
+              <Text style={styles.subscribeText}>Inscrever-se</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.subscribeButton}>
-            <Text style={styles.subscribeText}>Inscrever-se</Text>
+        </View>
+
+        {/* Barra de Ações Interativas (Pílulas) */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.actionsBar}
+        >
+          {/* Botão de Like/Dislike Unificado */}
+          <View style={styles.likeDislikeGroup}>
+            <TouchableOpacity style={styles.likeButton}>
+              <Feather name="thumbs-up" size={16} color="#fff" />
+              <Text style={styles.actionText}>12 mil</Text>
+            </TouchableOpacity>
+            <View style={styles.dividerVertical} />
+            <TouchableOpacity style={styles.dislikeButton}>
+              <Feather name="thumbs-down" size={16} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Botão Partilhar */}
+          <TouchableOpacity style={styles.pillButton}>
+            <Feather name="share-2" size={16} color="#fff" />
+            <Text style={styles.actionText}>Partilhar</Text>
+          </TouchableOpacity>
+
+          {/* Botão Remix */}
+          <TouchableOpacity style={styles.pillButton}>
+            <Ionicons name="repeat-outline" size={18} color="#fff" />
+            <Text style={styles.actionText}>Remix</Text>
+          </TouchableOpacity>
+
+          {/* Botão Transferir */}
+          <TouchableOpacity style={styles.pillButton}>
+            <Feather name="download" size={16} color="#fff" />
+            <Text style={styles.actionText}>Transferir</Text>
+          </TouchableOpacity>
+
+          {/* Botão Guardar */}
+          <TouchableOpacity style={styles.pillButton}>
+            <Feather name="bookmark" size={16} color="#fff" />
+            <Text style={styles.actionText}>Guardar</Text>
+          </TouchableOpacity>
+        </ScrollView>
+
+        {/* Card de Preview de Comentários */}
+        <TouchableOpacity style={styles.commentsCard}>
+          <View style={styles.commentsHeader}>
+            <Text style={styles.commentsTitle}>Comentários</Text>
+            <Text style={styles.commentsCount}>3</Text>
+          </View>
+
+          <View style={styles.commentPreview}>
+            <Image
+              source={{ uri: video.channel.avatar }}
+              style={styles.commentAvatar}
+            />
+            <Text style={styles.commentText} numberOfLines={2}>
+              Pior que estou usando a outra build e gostando bastante do resultado!
+            </Text>
           </View>
         </TouchableOpacity>
 
-        {/* Recomendados */}
+        {/* Lista de Recomendados */}
         <View style={styles.sectionDivider} />
-        <Text style={styles.sectionTitle}>Recomendados</Text>
 
         {MOCK_VIDEOS.filter((v) => v.id !== video.id).map((item) => (
           <TouchableOpacity
@@ -74,7 +142,9 @@ export default function VideoScreen() {
                 {item.title}
               </Text>
               <Text style={styles.relatedChannel}>{item.channel.name}</Text>
-              <Text style={styles.relatedMetrics}>{item.views}</Text>
+              <Text style={styles.relatedMetrics}>
+                {item.views} • {item.postedAt}
+              </Text>
             </View>
           </TouchableOpacity>
         ))}
@@ -108,48 +178,62 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 16,
+    padding: 12,
   },
   title: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 8,
+    lineHeight: 24,
+    marginBottom: 4,
   },
   metrics: {
     color: '#aaa',
     fontSize: 12,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   channelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#272727',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  channelLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    marginRight: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 10,
   },
   channelInfo: {
-    flex: 1,
+    justifyContent: 'center',
   },
   channelName: {
     color: '#fff',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   subscribers: {
     color: '#aaa',
-    fontSize: 12,
+    fontSize: 11,
+  },
+  subscribeActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  bellButton: {
+    padding: 8,
+    backgroundColor: '#272727',
+    borderRadius: 18,
   },
   subscribeButton: {
     backgroundColor: '#fff',
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 18,
   },
@@ -158,20 +242,93 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 13,
   },
+  actionsBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginVertical: 8,
+    paddingRight: 12,
+  },
+  likeDislikeGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#272727',
+    borderRadius: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  likeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dislikeButton: {
+    paddingLeft: 8,
+  },
+  dividerVertical: {
+    width: 1,
+    height: 16,
+    backgroundColor: '#3f3f3f',
+    marginHorizontal: 8,
+  },
+  pillButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#272727',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 18,
+    gap: 6,
+  },
+  actionText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  commentsCard: {
+    backgroundColor: '#272727',
+    borderRadius: 12,
+    padding: 12,
+    marginVertical: 12,
+  },
+  commentsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  commentsTitle: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  commentsCount: {
+    color: '#aaa',
+    fontSize: 12,
+  },
+  commentPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  commentAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+  },
+  commentText: {
+    color: '#eee',
+    fontSize: 12,
+    flex: 1,
+  },
   sectionDivider: {
     height: 1,
     backgroundColor: '#272727',
-    marginVertical: 16,
-  },
-  sectionTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   relatedCard: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   relatedThumbnail: {
     width: 120,
@@ -189,6 +346,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     marginBottom: 4,
+    lineHeight: 18,
   },
   relatedChannel: {
     color: '#aaa',
