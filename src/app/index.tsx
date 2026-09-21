@@ -2,13 +2,18 @@ import { useRouter } from 'expo-router';
 import {
   FlatList,
   Image,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+// Instrução para o TypeScript ignorar a verificação de tipo dos ícones
+// @ts-ignore
+import { Feather, FontAwesome } from '@expo/vector-icons';
+
 import { MOCK_VIDEOS, VideoItem } from '../constants/mockData';
 
 export default function HomeScreen() {
@@ -36,7 +41,7 @@ export default function HomeScreen() {
         </View>
       </TouchableOpacity>
 
-      {/* Informações do Vídeo e Canal */}
+      {/* Detalhes do Vídeo e do Canal */}
       <View style={styles.infoContainer}>
         <TouchableOpacity onPress={() => handleChannelPress(item.channel.id)}>
           <Image source={{ uri: item.channel.avatar }} style={styles.avatar} />
@@ -59,20 +64,41 @@ export default function HomeScreen() {
             {item.postedAt}
           </Text>
         </View>
+
+        <TouchableOpacity style={styles.moreOptions}>
+          <Feather name="more-vertical" size={18} color="#ffffff" />
+        </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
       
-      {/* Header */}
+      {/* Topo / Cabeçalho Fiel ao YouTube */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>YouTube</Text>
+        {/* Logo Lado Esquerdo */}
+        <View style={styles.logoContainer}>
+          <FontAwesome name="youtube-play" size={26} color="#FF0000" />
+          <Text style={styles.headerTitle}>YouTube</Text>
+        </View>
+
+        {/* Ícones Lado Direito (Transmitir, Notificações, Busca) */}
+        <View style={styles.headerIcons}>
+          <TouchableOpacity style={styles.iconButton}>
+            <Feather name="cast" size={20} color="#ffffff" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton}>
+            <Feather name="bell" size={20} color="#ffffff" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton}>
+            <Feather name="search" size={20} color="#ffffff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Feed principal */}
+      {/* Lista Principal de Vídeos */}
       <FlatList
         data={MOCK_VIDEOS}
         keyExtractor={(item) => item.id}
@@ -90,17 +116,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f0f0f',
   },
   header: {
-    height: 50,
+    height: 52,
     paddingHorizontal: 16,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderBottomWidth: 1,
     borderBottomColor: '#272727',
+    backgroundColor: '#0f0f0f',
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   headerTitle: {
     color: '#ffffff',
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: 'bold',
-    letterSpacing: -0.5,
+    letterSpacing: -0.8,
+    marginLeft: 6,
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
+    marginLeft: 18,
   },
   listContent: {
     paddingBottom: 20,
@@ -137,9 +178,9 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     marginRight: 12,
   },
   textDetails: {
@@ -155,5 +196,8 @@ const styles = StyleSheet.create({
   metadataText: {
     color: '#aaa',
     fontSize: 12,
+  },
+  moreOptions: {
+    paddingLeft: 8,
   },
 });
