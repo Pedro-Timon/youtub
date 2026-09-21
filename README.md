@@ -1,56 +1,61 @@
-# Welcome to your Expo app 👋
+YouTube Clone 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Projeto mobile para reprodução visual da interface do YouTube, desenvolvido com React Native, Expo Router e TypeScript.
 
-## Get started
+🚀 Get started
 
-1. Install dependencies
+Instale as dependências:
 
-   ```bash
-   npm install
-   ```
+npm install
 
-2. Start the app
 
-   ```bash
-   npx expo start
-   ```
+Instale os pacotes de suporte e ícones do projeto:
 
-In the output, you'll find options to open the app in a
+npx expo install @expo/vector-icons
+npm install --save-dev @types/react-native-vector-icons
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Inicie o servidor de desenvolvimento:
 
-## Get a fresh project
+npx expo start
 
-When you're ready, run:
 
-```bash
-npm run reset-project
-```
+No terminal, você terá as opções padrão para abrir o aplicativo no:
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Development build
 
-### Other setup steps
+Android emulator
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+iOS simulator
 
-## Learn more
+Expo Go, ambiente para testes em dispositivos físicos.
 
-To learn more about developing your project with Expo, look at the following resources:
+📁 Estrutura de Arquivos e Navegação
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Este projeto utiliza o sistema de rotas baseado em arquivos (file-based routing) do Expo Router dentro de src/app:
 
-## Join the community
+src/app/index.tsx: Feed principal e cabeçalho do aplicativo.
 
-Join our community of developers creating universal apps.
+src/app/video/[id].tsx: Reprodução de vídeo, dados do canal e lista de recomendados.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+src/app/channel/[id].tsx: Perfil do canal, banner e aba de vídeos do autor.
+
+src/constants/mockData.ts: Centralização dos dados tipados de canais e vídeos.
+
+🛠️ Notas de Desenvolvimento
+
+Vector Icons: Para contornar limitações locais do autocompletar de tipos do TypeScript ao utilizar @expo/vector-icons, utiliza-se a instrução // @ts-ignore acima do import do pacote.
+
+Roteamento Dinâmico: Durante a criação inicial das páginas dinâmicas, utiliza-se a sintaxe as any em chamadas router.push para compatibilidade com o gerador temporário de rotas do Expo Router.
+
+🧼 Comandos Adicionais
+
+Reset do Projeto: Para limpar a pasta de código e retornar ao template básico, rode npm run reset-project.
+
+Linting: Para rodar verificações de código com ESLint, utilize npx expo lint.
+
+📚 Learn more
+
+Expo documentation
+
+Expo Router Guide
