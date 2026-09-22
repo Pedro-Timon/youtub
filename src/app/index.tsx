@@ -90,7 +90,19 @@ export default function HomeScreen() {
             style={styles.iconButton}
             onPress={() => router.push('/shorts')}
           >
-            <Text style={styles.shortsButton}>Shorts</Text>
+            <Text style={styles.shortsButton}>S</Text>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => router.push('/inscricoes')}
+          >
+            <Text style={styles.inscricoesButton}>I</Text>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => router.push('/voce')}
+          >
+            <Text style={styles.voceButton}>Vc</Text>
+          </TouchableOpacity>  
+          </TouchableOpacity>
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton}>
             <Feather name="cast" size={20} color="#ffffff" />
@@ -150,6 +162,16 @@ const styles = StyleSheet.create({
     marginLeft: 18,
   },
   shortsButton: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  inscricoesButton: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+    voceButton: {
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '600',
