@@ -13,6 +13,7 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" />
+        <Stack.Screen name="shorts" />
         <Stack.Screen name="video/[id]" />
         <Stack.Screen name="channel/[id]" />
       </Stack>

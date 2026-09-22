@@ -86,6 +86,12 @@ export default function HomeScreen() {
 
         {/* Ícones Lado Direito (Transmitir, Notificações, Busca) */}
         <View style={styles.headerIcons}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => router.push('/shorts')}
+          >
+            <Text style={styles.shortsButton}>Shorts</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton}>
             <Feather name="cast" size={20} color="#ffffff" />
           </TouchableOpacity>
@@ -142,6 +148,11 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     marginLeft: 18,
+  },
+  shortsButton: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   listContent: {
     paddingBottom: 20,
