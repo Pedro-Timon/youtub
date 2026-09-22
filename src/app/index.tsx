@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Instrução para o TypeScript ignorar a verificação de tipo dos ícones
 // @ts-ignore
 import { Feather, FontAwesome } from '@expo/vector-icons';
 
@@ -36,9 +35,11 @@ export default function HomeScreen() {
         style={styles.thumbnailContainer}
       >
         <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
-        <View style={styles.durationBadge}>
-          <Text style={styles.durationText}>{item.duration}</Text>
-        </View>
+        {item.duration && (
+          <View style={styles.durationBadge}>
+            <Text style={styles.durationText}>{item.duration}</Text>
+          </View>
+        )}
       </TouchableOpacity>
 
       {/* Detalhes do Vídeo e do Canal */}
@@ -75,8 +76,8 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
-      
-      {/* Topo / Cabeçalho Fiel ao YouTube */}
+
+      {/* Topo / Cabeçalho */}
       <View style={styles.header}>
         {/* Logo Lado Esquerdo */}
         <View style={styles.logoContainer}>
@@ -84,26 +85,8 @@ export default function HomeScreen() {
           <Text style={styles.headerTitle}>YouTube</Text>
         </View>
 
-        {/* Ícones Lado Direito (Transmitir, Notificações, Busca) */}
+        {/* Ícones Lado Direito */}
         <View style={styles.headerIcons}>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => router.push('/shorts')}
-          >
-            <Text style={styles.shortsButton}>S</Text>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => router.push('/inscricoes')}
-          >
-            <Text style={styles.inscricoesButton}>I</Text>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => router.push('/voce')}
-          >
-            <Text style={styles.voceButton}>Vc</Text>
-          </TouchableOpacity>  
-          </TouchableOpacity>
-          </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton}>
             <Feather name="cast" size={20} color="#ffffff" />
           </TouchableOpacity>
@@ -157,24 +140,10 @@ const styles = StyleSheet.create({
   headerIcons: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 16,
   },
   iconButton: {
-    marginLeft: 18,
-  },
-  shortsButton: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  inscricoesButton: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-    voceButton: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
+    padding: 2,
   },
   listContent: {
     paddingBottom: 20,
