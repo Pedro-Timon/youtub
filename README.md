@@ -11,6 +11,7 @@ npm install
 Instale os pacotes de suporte e ícones do projeto:
 
 npx expo install @expo/vector-icons
+
 npm install --save-dev @types/react-native-vector-icons
 
 Inicie o servidor de desenvolvimento:
