@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import {
   FlatList,
   Image,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -11,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // @ts-ignore
-import { Feather, FontAwesome } from '@expo/vector-icons';
+import { Feather, FontAwesome, Ionicons } from '@expo/vector-icons';
 
 import { MOCK_VIDEOS, VideoItem } from '../constants/mockData';
 
@@ -77,7 +78,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
 
-      {/* Topo / Cabeçalho */}
+      {/* Topo / Cabeçalho Principal */}
       <View style={styles.header}>
         {/* Logo Lado Esquerdo */}
         <View style={styles.logoContainer}>
@@ -85,18 +86,71 @@ export default function HomeScreen() {
           <Text style={styles.headerTitle}>YouTube</Text>
         </View>
 
-        {/* Ícones Lado Direito */}
+        {/* Ícones Lado Direito (Atualizados conforme a print: Mensagens, Notificações, Pesquisa) */}
         <View style={styles.headerIcons}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Feather name="cast" size={20} color="#ffffff" />
+          <TouchableOpacity 
+            style={styles.iconButton}
+            onPress={() => router.push('/mensagens' as any)}
+          >
+            <Ionicons name="chatbubble-outline" size={20} color="#ffffff" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <Feather name="bell" size={20} color="#ffffff" />
+
+          <TouchableOpacity 
+            style={styles.iconButton}
+            onPress={() => router.push('/notificacoes' as any)}
+          >
+            <View>
+              <Feather name="bell" size={20} color="#ffffff" />
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>9+</Text>
+              </View>
+            </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
+
+          <TouchableOpacity 
+            style={styles.iconButton}
+            onPress={() => router.push('/pesquisa' as any)}
+          >
             <Feather name="search" size={20} color="#ffffff" />
           </TouchableOpacity>
         </View>
+      </View>
+
+      {/* Abas de Navegação Horizontal (Início, Inscrições, Música, Ao vivo, Mais) */}
+      <View style={styles.subNavContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.subNavContent}>
+          <TouchableOpacity style={[styles.subNavItem, styles.subNavItemActive]}>
+            <Text style={[styles.subNavText, styles.subNavTextActive]}>Início</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.subNavItem} 
+            onPress={() => router.push('/inscricoes' as any)}
+          >
+            <Text style={styles.subNavText}>Inscrições</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.subNavItem} 
+            onPress={() => router.push('/musica' as any)}
+          >
+            <Text style={styles.subNavText}>Música</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.subNavItem} 
+            onPress={() => router.push('/ao-vivo' as any)}
+          >
+            <Text style={styles.subNavText}>Ao vivo</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.subNavItem} 
+            onPress={() => router.push('/mais' as any)}
+          >
+            <Text style={styles.subNavText}>Mais</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
 
       {/* Lista Principal de Vídeos */}
@@ -122,8 +176,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    borderBottomColor: '#272727',
     backgroundColor: '#0f0f0f',
   },
   logoContainer: {
@@ -144,9 +196,54 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: 2,
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -8,
+    backgroundColor: '#ff0000',
+    borderRadius: 8,
+    paddingHorizontal: 3,
+    height: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: '#ffffff',
+    fontSize: 9,
+    fontWeight: 'bold',
+  },
+  subNavContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#272727',
+    paddingVertical: 8,
+    backgroundColor: '#0f0f0f',
+  },
+  subNavContent: {
+    paddingHorizontal: 16,
+    gap: 20,
+    alignItems: 'center',
+  },
+  subNavItem: {
+    paddingVertical: 4,
+  },
+  subNavItemActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#ff0000',
+  },
+  subNavText: {
+    color: '#aaa',
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  subNavTextActive: {
+    color: '#ffffff',
+    fontWeight: 'bold',
   },
   listContent: {
     paddingBottom: 20,
+    paddingTop: 12,
   },
   cardContainer: {
     marginBottom: 20,
