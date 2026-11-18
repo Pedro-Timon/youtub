@@ -18,7 +18,6 @@ import { MOCK_VIDEOS } from '../constants/mockData';
 export default function MusicaScreen() {
   const router = useRouter();
 
-  // Adaptando os mocks com temática musical baseada na print
   const musicVideos = MOCK_VIDEOS.map((video, index) => ({
     ...video,
     duration: index % 2 === 0 ? '3:45' : '4:25',
@@ -28,6 +27,7 @@ export default function MusicaScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* @ts-ignore */}
       <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
 
       {/* Header Superior */}
@@ -113,7 +113,6 @@ export default function MusicaScreen() {
             activeOpacity={0.9}
             onPress={() => router.push(`/video/${item.id}` as any)}
           >
-            {/* Thumbnail com badge de duração e nota musical */}
             <View style={styles.thumbnailContainer}>
               <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
               <View style={styles.durationBadge}>
@@ -122,7 +121,6 @@ export default function MusicaScreen() {
               </View>
             </View>
 
-            {/* Informações da Música */}
             <View style={styles.infoContainer}>
               <Image source={{ uri: item.channel.avatar }} style={styles.avatar} />
 
@@ -284,4 +282,4 @@ const styles = StyleSheet.create({
   moreOptions: {
     paddingLeft: 8,
   },
-});
+} as any);

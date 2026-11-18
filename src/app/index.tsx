@@ -76,6 +76,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* @ts-ignore */}
       <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
 
       {/* Topo / Cabeçalho Principal */}
@@ -299,4 +300,4 @@ const styles = StyleSheet.create({
   moreOptions: {
     paddingLeft: 8,
   },
-});
+} as any);

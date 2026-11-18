@@ -26,6 +26,7 @@ export default function AoVivoScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* @ts-ignore */}
       <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
 
       {/* Header Superior */}
@@ -279,4 +280,4 @@ const styles = StyleSheet.create({
   moreOptions: {
     paddingLeft: 8,
   },
-});
+} as any);
