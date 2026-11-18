@@ -38,6 +38,7 @@ export default function RootLayout() {
       {isTabScreen && (
         <SafeAreaView edges={['bottom']} style={styles.bottomBarContainer}>
           <View style={styles.bottomBar}>
+            {/* 1. Início */}
             <TouchableOpacity
               style={styles.tabItem}
               onPress={() => router.push('/')}
@@ -57,6 +58,7 @@ export default function RootLayout() {
               </Text>
             </TouchableOpacity>
 
+            {/* 2. Shorts */}
             <TouchableOpacity
               style={styles.tabItem}
               onPress={() => router.push('/shorts')}
@@ -76,6 +78,20 @@ export default function RootLayout() {
               </Text>
             </TouchableOpacity>
 
+            {/* 3. Botão Criar (+) Central */}
+            <TouchableOpacity
+              style={styles.createButtonContainer}
+              onPress={() => {
+                // Aqui podes redirecionar para uma tela de criar ou abrir um modal
+                // router.push('/criar' as any);
+              }}
+            >
+              <View style={styles.createButtonCircle}>
+                <Feather name="plus" size={24} color="#0f0f0f" />
+              </View>
+            </TouchableOpacity>
+
+            {/* 4. Inscrições */}
             <TouchableOpacity
               style={styles.tabItem}
               onPress={() => router.push('/inscricoes')}
@@ -95,6 +111,7 @@ export default function RootLayout() {
               </Text>
             </TouchableOpacity>
 
+            {/* 5. Você */}
             <TouchableOpacity
               style={styles.tabItem}
               onPress={() => router.push('/voce')}
@@ -134,7 +151,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#272727',
   },
   bottomBar: {
-    height: 48,
+    height: 52,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
@@ -143,6 +160,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 4,
+    flex: 1,
+  },
+  createButtonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  createButtonCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tabLabel: {
     color: '#aaaaaa',
@@ -153,4 +184,4 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
   },
-});
+} as any);
