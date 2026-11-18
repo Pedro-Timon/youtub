@@ -1,6 +1,6 @@
 import { Stack, usePathname, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // @ts-ignore
@@ -11,7 +11,7 @@ export default function RootLayout() {
   const pathname = usePathname();
 
   // Esconde a barra inferior se estiver na tela de vídeo ou de canal
-  const isTabScreen = ['/', '/index', '/shorts', '/inscricoes', '/voce'].includes(pathname);
+  const isTabScreen = ['/', '/index', '/shorts', '/inscricoes', '/voce', '/criar'].includes(pathname);
 
   return (
     <View style={styles.container}>
@@ -29,6 +29,7 @@ export default function RootLayout() {
           <Stack.Screen name="shorts" />
           <Stack.Screen name="inscricoes" />
           <Stack.Screen name="voce" />
+          <Stack.Screen name="criar" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="video/[id]" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="channel/[id]" options={{ animation: 'slide_from_right' }} />
         </Stack>
@@ -64,7 +65,7 @@ export default function RootLayout() {
               onPress={() => router.push('/shorts')}
             >
               <Ionicons
-                name="flash-outline"
+                name="play-sharp"
                 size={22}
                 color={pathname === '/shorts' ? '#ffffff' : '#aaaaaa'}
               />
@@ -81,10 +82,7 @@ export default function RootLayout() {
             {/* 3. Botão Criar (+) Central */}
             <TouchableOpacity
               style={styles.createButtonContainer}
-              onPress={() => {
-                // Aqui podes redirecionar para uma tela de criar ou abrir um modal
-                // router.push('/criar' as any);
-              }}
+              onPress={() => router.push('/criar' as any)}
             >
               <View style={styles.createButtonCircle}>
                 <Feather name="plus" size={24} color="#0f0f0f" />
@@ -111,16 +109,17 @@ export default function RootLayout() {
               </Text>
             </TouchableOpacity>
 
-            {/* 5. Você */}
+            {/* 5. Você (Com Avatar Circular idêntico ao app real) */}
             <TouchableOpacity
               style={styles.tabItem}
               onPress={() => router.push('/voce')}
             >
-              <Feather
-                name="user"
-                size={22}
-                color={pathname === '/voce' ? '#ffffff' : '#aaaaaa'}
-              />
+              <View style={[styles.avatarTabContainer, pathname === '/voce' && styles.avatarTabActive]}>
+                <Image
+                  source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop' }}
+                  style={styles.tabAvatar}
+                />
+              </View>
               <Text
                 style={[
                   styles.tabLabel,
@@ -174,6 +173,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  avatarTabContainer: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarTabActive: {
+    borderColor: '#ffffff',
+  },
+  tabAvatar: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
   },
   tabLabel: {
     color: '#aaaaaa',
