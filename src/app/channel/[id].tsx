@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
+    ActivityIndicator,
     Image,
     ScrollView,
     StatusBar,
@@ -13,18 +14,76 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // @ts-ignore
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { MOCK_VIDEOS } from '../../constants/mockData';
+//import type { VideoItem } from '../../constants/mockData';
+import { getChannelById } from '../../services/youtubeApi';
 
 const TABS = ['Início', 'Vídeos', 'Playlists', 'Posts'];
 
 export default function ChannelScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+
   const [activeTab, setActiveTab] = useState('Início');
 
-  const videoWithChannel = MOCK_VIDEOS.find((v) => v.channel.id === id) || MOCK_VIDEOS[0];
-  const { channel } = videoWithChannel;
-  const channelVideos = MOCK_VIDEOS.filter((v) => v.channel.id === channel.id);
+  const [channelData, setChannelData] = useState<Awaited<
+    ReturnType<typeof getChannelById>
+  >>(null);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    async function loadChannel() {
+      try {
+        setLoading(true);
+        setError('');
+
+        const result = await getChannelById(id);
+
+        if (!result) {
+          setError('Canal não encontrado.');
+          return;
+        }
+
+        setChannelData(result);
+      } catch (err) {
+        console.error('Erro ao carregar canal:', err);
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Não foi possível carregar o canal.'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (id) {
+      loadChannel();
+    }
+  }, [id]);
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#ffffff" />
+        <Text style={styles.statusText}>Carregando canal...</Text>
+      </View>
+    );
+  }
+
+  if (error || !channelData) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.statusText}>
+          {error || 'Canal não encontrado.'}
+        </Text>
+      </View>
+    );
+  }
+
+  const { channel, videoCount, videos: channelVideos } = channelData;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -50,7 +109,7 @@ export default function ChannelScreen() {
         {/* Banner */}
         <View style={styles.bannerContainer}>
           <Image
-            source={{ uri: 'https://picsum.photos/800/200' }}
+            source={{ uri: channel.banner || channel.avatar }}
             style={styles.bannerImage}
           />
         </View>
@@ -62,7 +121,7 @@ export default function ChannelScreen() {
             <Text style={styles.channelTitle}>{channel.name}</Text>
             <Text style={styles.channelHandle}>@{channel.id}</Text>
             <Text style={styles.channelStats}>
-              {channel.subscribers} • {channelVideos.length} vídeos
+              {channel.subscribers} • {videoCount} vídeos
             </Text>
           </View>
         </View>
@@ -70,7 +129,8 @@ export default function ChannelScreen() {
         {/* Bio / Descrição */}
         <TouchableOpacity style={styles.bioContainer}>
           <Text style={styles.bioText} numberOfLines={1}>
-            Conteúdo sobre programação e desenvolvimento mobile... <Text style={styles.moreText}>mais</Text>
+            {channel.description || 'Este canal não possui uma descrição.'}{' '}
+            <Text style={styles.moreText}>mais</Text>
           </Text>
         </TouchableOpacity>
 
@@ -127,7 +187,7 @@ export default function ChannelScreen() {
               <View style={styles.thumbnailWrapper}>
                 <Image source={{ uri: item.thumbnail }} style={styles.carouselThumbnail} />
                 <View style={styles.durationBadge}>
-                  <Text style={styles.durationText}>11:45</Text>
+                  <Text style={styles.durationText}>{item.duration}</Text>
                 </View>
               </View>
               <Text style={styles.carouselTitle} numberOfLines={2}>
