@@ -1,5 +1,7 @@
 import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   ScrollView,
@@ -14,10 +16,39 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // @ts-ignore
 import { Feather, FontAwesome, Ionicons } from '@expo/vector-icons';
 
-import { MOCK_VIDEOS, VideoItem } from '../constants/mockData';
+import { VideoItem } from '../constants/mockData';
+import { getPopularVideos } from '../services/youtubeApi';
 
 export default function HomeScreen() {
   const router = useRouter();
+
+  const [videos, setVideos] = useState<VideoItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    async function loadVideos() {
+      try {
+        setLoading(true);
+        setError('');
+
+        const results = await getPopularVideos();
+        setVideos(results);
+      } catch (err) {
+        console.error('Erro ao carregar vídeos:', err);
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Não foi possível carregar os vídeos.'
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadVideos();
+  }, []);
 
   const handleVideoPress = (id: string) => {
     router.push(`/video/${id}` as any);
@@ -155,13 +186,49 @@ export default function HomeScreen() {
       </View>
 
       {/* Lista Principal de Vídeos */}
-      <FlatList
-        data={MOCK_VIDEOS}
-        keyExtractor={(item) => item.id}
-        renderItem={renderVideoCard}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#ff0000" />
+          <Text style={styles.statusText}>
+            Carregando vídeos...
+          </Text>
+        </View>
+      ) : error ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.statusText}>{error}</Text>
+
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={async () => {
+              try {
+                setLoading(true);
+                setError('');
+
+                const results = await getPopularVideos();
+                setVideos(results);
+              } catch (err) {
+                setError(
+                  err instanceof Error
+                    ? err.message
+                    : 'Erro ao carregar vídeos.'
+                );
+              } finally {
+                setLoading(false);
+              }
+            }}
+          >
+            <Text style={styles.retryText}>Tentar novamente</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={videos}
+          keyExtractor={(item) => item.id}
+          renderItem={renderVideoCard}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -299,5 +366,27 @@ const styles = StyleSheet.create({
   },
   moreOptions: {
     paddingLeft: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+    gap: 12,
+  },
+  statusText: {
+    color: '#aaaaaa',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: '#272727',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  retryText: {
+    color: '#ffffff',
+    fontWeight: '600',
   },
 } as any);
