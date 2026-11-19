@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Image,
     ScrollView,
@@ -13,26 +13,132 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // @ts-ignore
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { MOCK_VIDEOS } from '../../constants/mockData';
+import type { VideoItem } from '../../constants/mockData';
+import {
+  getVideoById,
+  getPopularVideos,
+} from '../../services/youtubeApi';
 import { addToWatchHistory } from '../../utils/watchHistory';
 
 export default function VideoScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id } = useLocalSearchParams<{ id: string | string[] }>();
   const router = useRouter();
 
-  // Busca o vídeo correspondente ao ID recebido na rota
-  const video = MOCK_VIDEOS.find((v) => v.id === id) || MOCK_VIDEOS[0];
-  
-  // Registra o vídeo no histórico ao abrir a tela.
+  const videoId = Array.isArray(id) ? id[0] : id;
+
+  const [video, setVideo] = useState<VideoItem | null>(null);
+  const [relatedVideos, setRelatedVideos] = useState<VideoItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
   useEffect(() => {
-    if (video && video.id === id) {
-      addToWatchHistory(video.id);
+    let active = true;
+
+    async function loadVideo() {
+      try {
+        setLoading(true);
+        setError('');
+        setVideo(null);
+        setRelatedVideos([]);
+
+        if (!videoId) {
+          setError('Identificação do vídeo inválida.');
+          return;
+        }
+
+        // Busca o vídeo específico pela API.
+        const result = await getVideoById(videoId);
+
+        if (!active) return;
+
+        if (!result) {
+          setError('Vídeo não encontrado.');
+          return;
+        }
+
+        setVideo(result);
+
+        // Registra o vídeo no histórico.
+        void addToWatchHistory(result.id);
+
+        // Busca vídeos populares para as recomendações.
+        try {
+          const popular = await getPopularVideos();
+
+          if (active) {
+            setRelatedVideos(
+              popular.filter((item) => item.id !== result.id)
+            );
+          }
+        } catch (recommendationError) {
+          console.error(
+            'Erro ao carregar recomendações:',
+            recommendationError
+          );
+        }
+      } catch (err) {
+        console.error('Erro ao carregar vídeo:', err);
+
+        if (active) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'Não foi possível carregar o vídeo.'
+          );
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
     }
-  }, [id, video.id]);
+
+    loadVideo();
+
+    return () => {
+      active = false;
+    };
+  }, [videoId]);
 
   const handleChannelPress = () => {
+    if (!video) return;
+
     router.push(`/channel/${video.channel.id}` as any);
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: '#fff' }}>
+            Carregando vídeo...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !video) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+          <Text style={{ color: '#fff', textAlign: 'center', marginBottom: 16 }}>
+            {error || 'Não foi possível encontrar o vídeo.'}
+          </Text>
+
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={{ color: '#3ea6ff' }}>
+              Voltar
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -139,7 +245,7 @@ export default function VideoScreen() {
         {/* Lista de Recomendados */}
         <View style={styles.sectionDivider} />
 
-        {MOCK_VIDEOS.filter((v) => v.id !== video.id).map((item) => (
+        {relatedVideos.map((item) => (
           <TouchableOpacity
             key={item.id}
             style={styles.relatedCard}
