@@ -14,13 +14,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // @ts-ignore
 import { Feather, MaterialIcons } from '@expo/vector-icons';
-import { MOCK_VIDEOS } from '../constants/mockData';
+import { MOCK_VIDEOS, type VideoItem } from '../constants/mockData';
+import { getVideoById } from '../services/youtubeApi';
 import { getWatchHistory } from '../utils/watchHistory';
 
 export default function VoceScreen() {
   const router = useRouter();
 
-  const [historyVideos, setHistoryVideos] = useState<typeof MOCK_VIDEOS>([]);
+  const [historyVideos, setHistoryVideos] = useState<VideoItem[]>([]);
   const [showAllHistory, setShowAllHistory] = useState(false);
 
   // Atualiza o histórico sempre que a tela Você recebe o foco.
@@ -29,17 +30,40 @@ export default function VoceScreen() {
       let isActive = true;
 
       async function loadHistory() {
-        const historyIds = await getWatchHistory();
+        try {
+          const historyIds = await getWatchHistory();
+          const videos: VideoItem[] = [];
 
-        // Recupera os vídeos respeitando a ordem do histórico.
-        const videos = historyIds
-          .map((id) => MOCK_VIDEOS.find((video) => video.id === id))
-          .filter((video): video is (typeof MOCK_VIDEOS)[number] =>
-            video !== undefined
-          );
+          // Busca os vídeos em pequenos grupos para evitar
+          // muitas requisições simultâneas.
+          for (let i = 0; i < historyIds.length; i += 5) {
+            const batch = historyIds.slice(i, i + 5);
 
-        if (isActive) {
-          setHistoryVideos(videos);
+            const results = await Promise.all(
+              batch.map(async (id) => {
+                try {
+                  return await getVideoById(id);
+                } catch (error) {
+                  console.error(`Erro ao recuperar vídeo ${id}:`, error);
+                  return null;
+                }
+              })
+            );
+
+            videos.push(
+              ...results.filter(
+                (video): video is VideoItem => video !== null
+              )
+            );
+
+            if (!isActive) return;
+          }
+
+          if (isActive) {
+            setHistoryVideos(videos);
+          }
+        } catch (error) {
+          console.error('Erro ao carregar histórico:', error);
         }
       }
 
