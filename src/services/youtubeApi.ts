@@ -182,3 +182,100 @@ export async function getVideoById(videoId: string): Promise<VideoItem | null> {
     },
   };
 }
+
+// Recupera os dados de um canal e seus vídeos publicados.
+export async function getChannelById(channelId: string): Promise<{
+  channel: VideoItem['channel'];
+  videoCount: number;
+  videos: VideoItem[];
+} | null> {
+  const channelData = await apiRequest('channels', {
+    part: 'snippet,statistics,brandingSettings,contentDetails',
+    id: channelId,
+  });
+
+  const channel = channelData.items?.[0];
+
+  if (!channel) {
+    return null;
+  }
+
+  const uploadsPlaylistId =
+    channel.contentDetails?.relatedPlaylists?.uploads;
+
+  if (!uploadsPlaylistId) {
+    return null;
+  }
+
+  const playlistData = await apiRequest('playlistItems', {
+    part: 'contentDetails',
+    playlistId: uploadsPlaylistId,
+    maxResults: '20',
+  });
+
+  const videoIds = (playlistData.items || [])
+    .map((item: any) => item.contentDetails?.videoId)
+    .filter((id: unknown): id is string => typeof id === 'string');
+
+  const thumbnail =
+    channel.snippet.thumbnails.high?.url ||
+    channel.snippet.thumbnails.medium?.url ||
+    channel.snippet.thumbnails.default?.url ||
+    '';
+
+  const channelInfo: VideoItem['channel'] = {
+    id: channel.id,
+    name: channel.snippet.title,
+    avatar: thumbnail,
+    subscribers: `${new Intl.NumberFormat('pt-BR', {
+      notation: 'compact',
+    }).format(Number(channel.statistics?.subscriberCount || 0))} inscritos`,
+    banner:
+      channel.brandingSettings?.image?.bannerExternalUrl || thumbnail,
+    description: channel.snippet.description || '',
+  };
+
+  if (videoIds.length === 0) {
+    return {
+      channel: channelInfo,
+      videoCount: Number(channel.statistics?.videoCount || 0),
+      videos: [],
+    };
+  }
+
+  const videoData = await apiRequest('videos', {
+    part: 'snippet,contentDetails,statistics',
+    id: videoIds.join(','),
+  });
+
+  const videos: VideoItem[] = (videoData.items || []).map((video: any) => {
+    const views = Number(video.statistics?.viewCount || 0);
+
+    return {
+      id: video.id,
+      title: video.snippet.title,
+      views: `${new Intl.NumberFormat('pt-BR', {
+        notation: 'compact',
+      }).format(views)} visualizações`,
+      postedAt: new Date(video.snippet.publishedAt).toLocaleDateString('pt-BR'),
+      duration: formatDuration(video.contentDetails.duration),
+      thumbnail:
+        video.snippet.thumbnails.high?.url ||
+        video.snippet.thumbnails.medium?.url ||
+        video.snippet.thumbnails.default?.url ||
+        '',
+      videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
+      channel: channelInfo,
+    };
+  });
+
+  const videosMap = new Map(videos.map((video) => [video.id, video]));
+
+  return {
+    channel: channelInfo,
+    videoCount: Number(channel.statistics?.videoCount || 0),
+    videos: videoIds
+      .map((id: string) => videosMap.get(id))
+      .filter((video: VideoItem | undefined): video is VideoItem => video !== undefined),
+  };
+}
