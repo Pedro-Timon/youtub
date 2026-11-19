@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import {
     Image,
     ScrollView,
@@ -13,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // @ts-ignore
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { MOCK_VIDEOS } from '../../constants/mockData';
+import { addToWatchHistory } from '../../utils/watchHistory';
 
 export default function VideoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -20,6 +22,13 @@ export default function VideoScreen() {
 
   // Busca o vídeo correspondente ao ID recebido na rota
   const video = MOCK_VIDEOS.find((v) => v.id === id) || MOCK_VIDEOS[0];
+  
+  // Registra o vídeo no histórico ao abrir a tela.
+  useEffect(() => {
+    if (video && video.id === id) {
+      addToWatchHistory(video.id);
+    }
+  }, [id, video.id]);
 
   const handleChannelPress = () => {
     router.push(`/channel/${video.channel.id}` as any);
