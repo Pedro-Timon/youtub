@@ -1,4 +1,6 @@
-import { useRouter } from 'expo-router';
+
+import { useCallback, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
 import {
   Image,
   ScrollView,
@@ -13,9 +15,45 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // @ts-ignore
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { MOCK_VIDEOS } from '../constants/mockData';
+import { getWatchHistory } from '../utils/watchHistory';
 
 export default function VoceScreen() {
   const router = useRouter();
+
+  const [historyVideos, setHistoryVideos] = useState<typeof MOCK_VIDEOS>([]);
+  const [showAllHistory, setShowAllHistory] = useState(false);
+
+  // Atualiza o histórico sempre que a tela Você recebe o foco.
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      async function loadHistory() {
+        const historyIds = await getWatchHistory();
+
+        // Recupera os vídeos respeitando a ordem do histórico.
+        const videos = historyIds
+          .map((id) => MOCK_VIDEOS.find((video) => video.id === id))
+          .filter((video): video is (typeof MOCK_VIDEOS)[number] =>
+            video !== undefined
+          );
+
+        if (isActive) {
+          setHistoryVideos(videos);
+        }
+      }
+
+      loadHistory();
+
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
+
+  const displayedVideos = showAllHistory
+    ? historyVideos
+    : historyVideos.slice(0, 5);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -53,55 +91,92 @@ export default function VoceScreen() {
           </View>
         </View>
 
-        {/* Seção de Histórico Recente */}
+        {/* Seção de Histórico */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Histórico</Text>
-          <TouchableOpacity style={styles.viewAllButton}>
-            <Text style={styles.viewAllText}>Ver tudo</Text>
-          </TouchableOpacity>
-        </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.historyContainer}
-        >
-          {MOCK_VIDEOS.map((video) => (
+          {historyVideos.length > 5 && (
             <TouchableOpacity
-              key={video.id}
-              style={styles.historyCard}
-              onPress={() => router.push(`/video/${video.id}` as any)}
+              style={styles.viewAllButton}
+              onPress={() => setShowAllHistory(!showAllHistory)}
             >
-              <Image source={{ uri: video.thumbnail }} style={styles.historyThumbnail} />
-              <Text style={styles.historyTitle} numberOfLines={2}>
-                {video.title}
-              </Text>
-              <Text style={styles.historyChannel} numberOfLines={1}>
-                {video.channel.name}
+              <Text style={styles.viewAllText}>
+                {showAllHistory ? 'Mostrar menos' : 'Ver tudo'}
               </Text>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
+          )}
+        </View>
+
+        {historyVideos.length === 0 ? (
+          <Text style={styles.emptyHistory}>
+            Você ainda não assistiu a nenhum vídeo.
+          </Text>
+        ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.historyContainer}
+          >
+            {displayedVideos.map((video) => (
+              <TouchableOpacity
+                key={video.id}
+                style={styles.historyCard}
+                onPress={() => router.push(`/video/${video.id}` as any)}
+              >
+                <Image
+                  source={{ uri: video.thumbnail }}
+                  style={styles.historyThumbnail}
+                />
+                <Text style={styles.historyTitle} numberOfLines={2}>
+                  {video.title}
+                </Text>
+                <Text style={styles.historyChannel} numberOfLines={1}>
+                  {video.channel.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
 
         {/* Lista de Opções da Conta */}
         <View style={styles.optionsList}>
           <TouchableOpacity style={styles.optionRow}>
-            <MaterialIcons name="playlist-play" size={24} color="#ffffff" style={styles.optionIcon} />
+            <MaterialIcons
+              name="playlist-play"
+              size={24}
+              color="#ffffff"
+              style={styles.optionIcon}
+            />
             <Text style={styles.optionText}>Playlists</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.optionRow}>
-            <Feather name="thumbs-up" size={22} color="#ffffff" style={styles.optionIcon} />
+            <Feather
+              name="thumbs-up"
+              size={22}
+              color="#ffffff"
+              style={styles.optionIcon}
+            />
             <Text style={styles.optionText}>Vídeos marcados com gostei</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.optionRow}>
-            <Feather name="download" size={22} color="#ffffff" style={styles.optionIcon} />
+            <Feather
+              name="download"
+              size={22}
+              color="#ffffff"
+              style={styles.optionIcon}
+            />
             <Text style={styles.optionText}>Downloads</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.optionRow}>
-            <MaterialIcons name="local-movies" size={22} color="#ffffff" style={styles.optionIcon} />
+            <MaterialIcons
+              name="local-movies"
+              size={22}
+              color="#ffffff"
+              style={styles.optionIcon}
+            />
             <Text style={styles.optionText}>Seus filmes</Text>
           </TouchableOpacity>
         </View>
@@ -211,6 +286,12 @@ const styles = StyleSheet.create({
     color: '#aaaaaa',
     fontSize: 11,
     marginTop: 2,
+  },
+  emptyHistory: {
+    color: '#aaaaaa',
+    fontSize: 13,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
   },
   optionsList: {
     marginTop: 8,
