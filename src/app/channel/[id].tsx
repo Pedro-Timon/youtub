@@ -209,6 +209,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0f0f0f',
   },
+  statusText: {
+    color: '#fff',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 12,
+  },
   header: {
     height: 52,
     flexDirection: 'row',
