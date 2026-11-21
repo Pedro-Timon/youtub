@@ -10,13 +10,20 @@ export default function RootLayout() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Esconde a barra inferior se estiver na tela de vídeo ou de canal
-  const isTabScreen = ['/', '/index', '/shorts', '/inscricoes', '/voce', '/criar'].includes(pathname);
+  // Esconde a barra inferior fora das abas principais
+  const isTabScreen = [
+    '/',
+    '/index',
+    '/shorts',
+    '/inscricoes',
+    '/voce',
+    '/criar',
+  ].includes(pathname);
 
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      
+
       <View style={styles.content}>
         <Stack
           screenOptions={{
@@ -29,9 +36,27 @@ export default function RootLayout() {
           <Stack.Screen name="shorts" />
           <Stack.Screen name="inscricoes" />
           <Stack.Screen name="voce" />
-          <Stack.Screen name="criar" options={{ animation: 'slide_from_bottom' }} />
-          <Stack.Screen name="video/[id]" options={{ animation: 'slide_from_bottom' }} />
-          <Stack.Screen name="channel/[id]" options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen
+            name="notificacoes"
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen name="mensagens" />
+          <Stack.Screen name="pesquisa" />
+          <Stack.Screen name="musica" />
+          <Stack.Screen name="ao-vivo" />
+          <Stack.Screen name="mais" />
+          <Stack.Screen
+            name="criar"
+            options={{ animation: 'slide_from_bottom' }}
+          />
+          <Stack.Screen
+            name="video/[id]"
+            options={{ animation: 'slide_from_bottom' }}
+          />
+          <Stack.Screen
+            name="channel/[id]"
+            options={{ animation: 'slide_from_right' }}
+          />
         </Stack>
       </View>
 
@@ -47,12 +72,17 @@ export default function RootLayout() {
               <MaterialIcons
                 name="home"
                 size={24}
-                color={pathname === '/' || pathname === '/index' ? '#ffffff' : '#aaaaaa'}
+                color={
+                  pathname === '/' || pathname === '/index'
+                    ? '#ffffff'
+                    : '#aaaaaa'
+                }
               />
               <Text
                 style={[
                   styles.tabLabel,
-                  (pathname === '/' || pathname === '/index') && styles.tabLabelActive,
+                  (pathname === '/' || pathname === '/index') &&
+                    styles.tabLabelActive,
                 ]}
               >
                 Início
@@ -109,14 +139,21 @@ export default function RootLayout() {
               </Text>
             </TouchableOpacity>
 
-            {/* 5. Você (Com Avatar Circular idêntico ao app real) */}
+            {/* 5. Você */}
             <TouchableOpacity
               style={styles.tabItem}
               onPress={() => router.push('/voce')}
             >
-              <View style={[styles.avatarTabContainer, pathname === '/voce' && styles.avatarTabActive]}>
+              <View
+                style={[
+                  styles.avatarTabContainer,
+                  pathname === '/voce' && styles.avatarTabActive,
+                ]}
+              >
                 <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop' }}
+                  source={{
+                    uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop',
+                  }}
                   style={styles.tabAvatar}
                 />
               </View>
