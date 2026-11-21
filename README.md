@@ -1,60 +1,105 @@
-# YouTube Clone 👋
+# YouTube Clone
 
-Projeto mobile para reprodução visual da interface do YouTube, desenvolvido com React Native, Expo Router e TypeScript.
+Aplicativo mobile que reproduz a interface do YouTube, feito com **React Native**, **Expo Router** e **TypeScript**. Trabalho da disciplina de desenvolvimento mobile (P2), em dupla.
 
-## 🚀 Get started
+O app combina telas estáticas com dados de exemplo e telas que consomem a **YouTube Data API v3** em tempo real.
 
-Instale as dependências:
+## Funcionalidades
 
+- **Início:** feed com os vídeos mais populares do Brasil, vindos da API.
+- **Vídeo:** detalhes do vídeo, canal e lista de recomendados.
+- **Canal:** banner, inscritos e vídeos publicados.
+- **Pesquisa:** busca de vídeos pela API, com carregamento e tratamento de erro. Ao tocar num resultado, o vídeo abre dentro do app.
+- **Notificações:** lista com estado de lida/não lida, salvo no aparelho.
+- **Você:** histórico dos vídeos assistidos, salvo no aparelho.
+- **Demais telas:** Shorts, Inscrições, Música, Ao vivo, Mais, Mensagens e Criar.
+
+## Requisitos do trabalho
+
+| Requisito | Onde está |
+| --- | --- |
+| Expo Router (navegação) | `src/app/` (rotas por arquivo) e `src/app/_layout.tsx` |
+| StyleSheet e Flexbox | Todas as telas |
+| Consumo de API | `src/services/youtubeApi.ts` |
+| Armazenamento local | `src/utils/watchHistory.ts` (histórico) e `src/app/notificacoes.tsx` (notificações lidas), ambos com AsyncStorage |
+| Mínimo de 12 telas | 13 telas em `src/app/` |
+
+## Como rodar
+
+### 1. Instale as dependências
+
+```bash
 npm install
+```
 
-Instale os pacotes de suporte e ícones do projeto:
+### 2. Configure a chave da API
 
-npx expo install @expo/vector-icons
+O app usa a YouTube Data API v3. Crie um arquivo `.env` na raiz do projeto, copiando o modelo:
 
-npm install --save-dev @types/react-native-vector-icons
+```bash
+cp .env.example .env
+```
 
-Inicie o servidor de desenvolvimento:
+Depois abra o `.env` e troque o valor pela sua chave:
 
-npx expo start
+```
+EXPO_PUBLIC_YOUTUBE_API_KEY=sua_chave_aqui
+```
 
-No terminal, você terá as opções padrão para abrir o aplicativo no:
-- **Development build**
-- **Android emulator**
-- **iOS simulator**
-- **Expo Go**, ambiente para testes em dispositivos físicos.
+Para gerar uma chave, acesse o [Google Cloud Console](https://console.cloud.google.com/), crie um projeto, ative a **YouTube Data API v3** e crie uma credencial do tipo "Chave de API".
 
----
+> O arquivo `.env` não é enviado ao GitHub (está no `.gitignore`). Sem a chave, a home e a pesquisa mostram uma mensagem de erro; as telas de vídeo e canal usam dados de exemplo como alternativa.
 
-## 📁 Estrutura de Arquivos e Navegação
+### 3. Inicie o projeto
 
-Este projeto utiliza o sistema de rotas baseado em arquivos (*file-based routing*) do Expo Router dentro de `src/app`:
+```bash
+npx expo start -c
+```
 
-- `src/app/index.tsx`: Feed principal e cabeçalho do aplicativo.
-- `src/app/shorts.tsx`: Exibição do feed de vídeos curtos (Shorts) no formato vertical.
-- `src/app/inscricoes.tsx`: Lista de canais inscritos pelo usuário.
-- `src/app/voce.tsx`: Tela de perfil do usuário, histórico e opções da conta.
-- `src/app/video/[id].tsx`: Reprodução de vídeo, dados do canal e lista de recomendados.
-- `src/app/channel/[id].tsx`: Perfil do canal, banner e aba de vídeos do autor.
-- `src/constants/mockData.ts`: Centralização dos dados tipados de canais e vídeos.
+O `-c` limpa o cache, necessário para o Expo ler o `.env`. Em seguida, abra o app:
 
----
+- no celular, com o aplicativo **Expo Go** (leia o QR Code exibido no terminal);
+- no emulador Android ou simulador iOS, pelas opções do terminal.
 
-## 🛠️ Notas de Desenvolvimento
+## Estrutura do projeto
 
-- **Vector Icons:** Para contornar limitações locais do autocompletar de tipos do TypeScript ao utilizar `@expo/vector-icons`, utiliza-se a instrução `// @ts-ignore` acima do import do pacote.
-- **Roteamento Dinâmico:** Durante a criação inicial das páginas dinâmicas, utiliza-se a sintaxe `as any` em chamadas `router.push` para compatibilidade com o gerador temporário de rotas do Expo Router.
+```
+src/
+├── app/                    # Telas (Expo Router)
+│   ├── _layout.tsx         # Navegação principal e barra inferior
+│   ├── index.tsx           # Início
+│   ├── shorts.tsx          # Shorts
+│   ├── inscricoes.tsx      # Inscrições
+│   ├── voce.tsx            # Perfil e histórico
+│   ├── criar.tsx           # Criar
+│   ├── pesquisa.tsx        # Pesquisa
+│   ├── notificacoes.tsx    # Notificações
+│   ├── mensagens.tsx       # Mensagens
+│   ├── musica.tsx          # Música
+│   ├── ao-vivo.tsx         # Ao vivo
+│   ├── mais.tsx            # Mais
+│   ├── video/[id].tsx      # Vídeo
+│   └── channel/[id].tsx    # Canal
+├── constants/
+│   └── mockData.ts         # Tipos e dados de exemplo
+├── services/
+│   └── youtubeApi.ts       # Chamadas à YouTube Data API
+└── utils/
+    └── watchHistory.ts     # Histórico salvo com AsyncStorage
+```
 
----
+## Tecnologias
 
-## 🧼 Comandos Adicionais
+- React Native 0.88 e Expo SDK 58 
+- Expo Router 58
+- TypeScript
+- AsyncStorage (`@react-native-async-storage/async-storage`)
+- YouTube Data API v3
 
-- **Reset do Projeto:** Para limpar a pasta de código e retornar ao template básico, rode `npm run reset-project`.
-- **Linting:** Para rodar verificações de código com ESLint, utilize `npx expo lint`.
+## Comandos úteis
 
----
-
-## 📚 Learn more
-
-- [Expo documentation](https://docs.expo.dev/)
-- [Expo Router Guide](https://docs.expo.dev/router/introduction/)
+```bash
+npx expo start -c    # inicia o projeto limpando o cache
+npx expo lint        # verifica o código com ESLint
+npx tsc --noEmit     # verifica os tipos do TypeScript
+```
