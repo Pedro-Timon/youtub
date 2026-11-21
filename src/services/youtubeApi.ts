@@ -1,5 +1,4 @@
-
-import type { VideoItem } from '../constants/mockData';
+import { MOCK_VIDEOS, type VideoItem } from '../constants/mockData';
 
 const API_KEY = process.env.EXPO_PUBLIC_YOUTUBE_API_KEY;
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
@@ -42,7 +41,9 @@ export async function searchVideos(query: string) {
 }
 
 // Converte a duração ISO do YouTube para o formato HH:MM:SS.
-function formatDuration(duration: string): string {
+function formatDuration(duration?: string): string {
+  if (!duration) return '00:00';
+
   const match = duration.match(
     /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/
   );
@@ -60,6 +61,22 @@ function formatDuration(duration: string): string {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
+function getMockChannelFallback(channelId: string) {
+  const matchingVideos = MOCK_VIDEOS.filter(
+    (v) => v.channel.id === channelId || v.channel.name === channelId
+  );
+
+  if (matchingVideos.length === 0) {
+    return null;
+  }
+
+  return {
+    channel: matchingVideos[0].channel,
+    videoCount: matchingVideos.length,
+    videos: matchingVideos,
+  };
+}
+
 // Recupera vídeos populares e informações dos canais.
 export async function getPopularVideos(): Promise<VideoItem[]> {
   const videoData = await apiRequest('videos', {
@@ -71,58 +88,69 @@ export async function getPopularVideos(): Promise<VideoItem[]> {
 
   const channelIds = [
     ...new Set(
-      videoData.items.map((video: any) => video.snippet.channelId)
+      (videoData.items || [])
+        .map((video: any) => video.snippet?.channelId)
+        .filter(Boolean)
     ),
   ];
 
-  const channelData = await apiRequest('channels', {
-    part: 'snippet,statistics,brandingSettings',
-    id: channelIds.join(','),
-  });
+  let channelsMap = new Map<string, any>();
 
-  const channelsMap = new Map(
-    channelData.items.map((channel: any) => [
-      channel.id,
-      channel,
-    ])
-  );
+  if (channelIds.length > 0) {
+    const channelData = await apiRequest('channels', {
+      part: 'snippet,statistics,brandingSettings',
+      id: channelIds.join(','),
+    });
 
-  return videoData.items.map((video: any): VideoItem => {
-    const channel = channelsMap.get(video.snippet.channelId) as any;
+    channelsMap = new Map(
+      (channelData.items || []).map((channel: any) => [
+        channel.id,
+        channel,
+      ])
+    );
+  }
+
+  return (videoData.items || []).map((video: any): VideoItem => {
+    const channel = channelsMap.get(video.snippet?.channelId);
 
     const thumbnail =
-      video.snippet.thumbnails.high?.url ||
-      video.snippet.thumbnails.medium?.url ||
-      video.snippet.thumbnails.default?.url;
+      video.snippet?.thumbnails?.high?.url ||
+      video.snippet?.thumbnails?.medium?.url ||
+      video.snippet?.thumbnails?.default?.url ||
+      '';
 
     const channelAvatar =
-      channel?.snippet.thumbnails.medium?.url ||
-      channel?.snippet.thumbnails.default?.url ||
+      channel?.snippet?.thumbnails?.medium?.url ||
+      channel?.snippet?.thumbnails?.default?.url ||
       thumbnail;
 
     const banner =
-      channel?.brandingSettings.image?.bannerExternalUrl ||
+      channel?.brandingSettings?.image?.bannerExternalUrl ||
       thumbnail;
 
-    const views = Number(video.statistics.viewCount || 0);
+    const views = Number(video.statistics?.viewCount || 0);
 
     return {
       id: video.id,
-      title: video.snippet.title,
+      title: video.snippet?.title || 'Sem título',
       views: `${new Intl.NumberFormat('pt-BR', {
         notation: 'compact',
       }).format(views)} visualizações`,
-      postedAt: new Date(video.snippet.publishedAt).toLocaleDateString('pt-BR'),
-      duration: formatDuration(video.contentDetails.duration),
+      postedAt: video.snippet?.publishedAt
+        ? new Date(video.snippet.publishedAt).toLocaleDateString('pt-BR')
+        : '',
+      duration: formatDuration(video.contentDetails?.duration),
       thumbnail,
       videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
       channel: {
-        id: video.snippet.channelId,
-        name: video.snippet.channelTitle,
+        id: video.snippet?.channelId || '',
+        name: video.snippet?.channelTitle || 'Canal',
         avatar: channelAvatar,
-        subscribers: `${channel?.statistics.subscriberCount || '0'} inscritos`,
+        subscribers: `${new Intl.NumberFormat('pt-BR', {
+          notation: 'compact',
+        }).format(Number(channel?.statistics?.subscriberCount || 0))} inscritos`,
         banner,
-        description: channel?.snippet.description || '',
+        description: channel?.snippet?.description || '',
       },
     };
   });
@@ -130,57 +158,65 @@ export async function getPopularVideos(): Promise<VideoItem[]> {
 
 // Recupera os dados de um vídeo específico pelo ID.
 export async function getVideoById(videoId: string): Promise<VideoItem | null> {
-  const videoData = await apiRequest('videos', {
-    part: 'snippet,contentDetails,statistics',
-    id: videoId,
-  });
+  try {
+    const videoData = await apiRequest('videos', {
+      part: 'snippet,contentDetails,statistics',
+      id: videoId,
+    });
 
-  if (!videoData.items || videoData.items.length === 0) {
-    return null;
-  }
+    if (!videoData.items || videoData.items.length === 0) {
+      return MOCK_VIDEOS.find((v) => v.id === videoId) || null;
+    }
 
-  const video = videoData.items[0];
+    const video = videoData.items[0];
 
-  // Busca as informações do canal.
-  const channelData = await apiRequest('channels', {
-    part: 'snippet,statistics,brandingSettings',
-    id: video.snippet.channelId,
-  });
-
-  const channel = channelData.items?.[0];
-
-  const thumbnail =
-    video.snippet.thumbnails.high?.url ||
-    video.snippet.thumbnails.medium?.url ||
-    video.snippet.thumbnails.default?.url;
-
-  const channelAvatar =
-    channel?.snippet.thumbnails.medium?.url ||
-    channel?.snippet.thumbnails.default?.url ||
-    thumbnail;
-
-  const views = Number(video.statistics.viewCount || 0);
-
-  return {
-    id: video.id,
-    title: video.snippet.title,
-    views: `${new Intl.NumberFormat('pt-BR', {
-      notation: 'compact',
-    }).format(views)} visualizações`,
-    postedAt: new Date(video.snippet.publishedAt).toLocaleDateString('pt-BR'),
-    duration: formatDuration(video.contentDetails.duration),
-    thumbnail,
-    videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
-    channel: {
+    const channelData = await apiRequest('channels', {
+      part: 'snippet,statistics,brandingSettings',
       id: video.snippet.channelId,
-      name: video.snippet.channelTitle,
-      avatar: channelAvatar,
-      subscribers: `${channel?.statistics?.subscriberCount || '0'} inscritos`,
-      banner:
-        channel?.brandingSettings?.image?.bannerExternalUrl || thumbnail,
-      description: channel?.snippet?.description || '',
-    },
-  };
+    });
+
+    const channel = channelData.items?.[0];
+
+    const thumbnail =
+      video.snippet?.thumbnails?.high?.url ||
+      video.snippet?.thumbnails?.medium?.url ||
+      video.snippet?.thumbnails?.default?.url ||
+      '';
+
+    const channelAvatar =
+      channel?.snippet?.thumbnails?.medium?.url ||
+      channel?.snippet?.thumbnails?.default?.url ||
+      thumbnail;
+
+    const views = Number(video.statistics?.viewCount || 0);
+
+    return {
+      id: video.id,
+      title: video.snippet?.title || 'Sem título',
+      views: `${new Intl.NumberFormat('pt-BR', {
+        notation: 'compact',
+      }).format(views)} visualizações`,
+      postedAt: video.snippet?.publishedAt
+        ? new Date(video.snippet.publishedAt).toLocaleDateString('pt-BR')
+        : '',
+      duration: formatDuration(video.contentDetails?.duration),
+      thumbnail,
+      videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
+      channel: {
+        id: video.snippet?.channelId || '',
+        name: video.snippet?.channelTitle || 'Canal',
+        avatar: channelAvatar,
+        subscribers: `${new Intl.NumberFormat('pt-BR', {
+          notation: 'compact',
+        }).format(Number(channel?.statistics?.subscriberCount || 0))} inscritos`,
+        banner:
+          channel?.brandingSettings?.image?.bannerExternalUrl || thumbnail,
+        description: channel?.snippet?.description || '',
+      },
+    };
+  } catch {
+    return MOCK_VIDEOS.find((v) => v.id === videoId) || null;
+  }
 }
 
 // Recupera os dados de um canal e seus vídeos publicados.
@@ -189,93 +225,113 @@ export async function getChannelById(channelId: string): Promise<{
   videoCount: number;
   videos: VideoItem[];
 } | null> {
-  const channelData = await apiRequest('channels', {
-    part: 'snippet,statistics,brandingSettings,contentDetails',
-    id: channelId,
-  });
-
-  const channel = channelData.items?.[0];
-
-  if (!channel) {
+  if (!channelId) {
     return null;
   }
 
-  const uploadsPlaylistId =
-    channel.contentDetails?.relatedPlaylists?.uploads;
+  try {
+    const channelData = await apiRequest('channels', {
+      part: 'snippet,statistics,brandingSettings,contentDetails',
+      id: channelId,
+    });
 
-  if (!uploadsPlaylistId) {
-    return null;
-  }
+    const channel = channelData.items?.[0];
 
-  const playlistData = await apiRequest('playlistItems', {
-    part: 'contentDetails',
-    playlistId: uploadsPlaylistId,
-    maxResults: '20',
-  });
+    if (!channel) {
+      return getMockChannelFallback(channelId);
+    }
 
-  const videoIds = (playlistData.items || [])
-    .map((item: any) => item.contentDetails?.videoId)
-    .filter((id: unknown): id is string => typeof id === 'string');
+    const avatarUrl =
+      channel.snippet?.thumbnails?.high?.url ||
+      channel.snippet?.thumbnails?.medium?.url ||
+      channel.snippet?.thumbnails?.default?.url ||
+      '';
 
-  const thumbnail =
-    channel.snippet.thumbnails.high?.url ||
-    channel.snippet.thumbnails.medium?.url ||
-    channel.snippet.thumbnails.default?.url ||
-    '';
+    const channelInfo: VideoItem['channel'] = {
+      id: channel.id,
+      name: channel.snippet?.title || 'Canal',
+      avatar: avatarUrl,
+      subscribers: `${new Intl.NumberFormat('pt-BR', {
+        notation: 'compact',
+      }).format(Number(channel.statistics?.subscriberCount || 0))} inscritos`,
+      banner:
+        channel.brandingSettings?.image?.bannerExternalUrl || avatarUrl,
+      description: channel.snippet?.description || '',
+    };
 
-  const channelInfo: VideoItem['channel'] = {
-    id: channel.id,
-    name: channel.snippet.title,
-    avatar: thumbnail,
-    subscribers: `${new Intl.NumberFormat('pt-BR', {
-      notation: 'compact',
-    }).format(Number(channel.statistics?.subscriberCount || 0))} inscritos`,
-    banner:
-      channel.brandingSettings?.image?.bannerExternalUrl || thumbnail,
-    description: channel.snippet.description || '',
-  };
+    const uploadsPlaylistId =
+      channel.contentDetails?.relatedPlaylists?.uploads;
 
-  if (videoIds.length === 0) {
+    if (!uploadsPlaylistId) {
+      return {
+        channel: channelInfo,
+        videoCount: Number(channel.statistics?.videoCount || 0),
+        videos: [],
+      };
+    }
+
+    const playlistData = await apiRequest('playlistItems', {
+      part: 'contentDetails',
+      playlistId: uploadsPlaylistId,
+      maxResults: '20',
+    });
+
+    const videoIds = (playlistData.items || [])
+      .map((item: any) => item.contentDetails?.videoId)
+      .filter((id: unknown): id is string => typeof id === 'string');
+
+    if (videoIds.length === 0) {
+      return {
+        channel: channelInfo,
+        videoCount: Number(channel.statistics?.videoCount || 0),
+        videos: [],
+      };
+    }
+
+    const videoData = await apiRequest('videos', {
+      part: 'snippet,contentDetails,statistics',
+      id: videoIds.join(','),
+    });
+
+    const videos: VideoItem[] = (videoData.items || []).map((video: any) => {
+      const views = Number(video.statistics?.viewCount || 0);
+
+      return {
+        id: video.id,
+        title: video.snippet?.title || 'Sem título',
+        views: `${new Intl.NumberFormat('pt-BR', {
+          notation: 'compact',
+        }).format(views)} visualizações`,
+        postedAt: video.snippet?.publishedAt
+          ? new Date(video.snippet.publishedAt).toLocaleDateString('pt-BR')
+          : '',
+        duration: formatDuration(video.contentDetails?.duration),
+        thumbnail:
+          video.snippet?.thumbnails?.high?.url ||
+          video.snippet?.thumbnails?.medium?.url ||
+          video.snippet?.thumbnails?.default?.url ||
+          avatarUrl,
+        videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
+        channel: channelInfo,
+      };
+    });
+
+    const videosMap = new Map(videos.map((video) => [video.id, video]));
+
     return {
       channel: channelInfo,
       videoCount: Number(channel.statistics?.videoCount || 0),
-      videos: [],
+      videos: videoIds
+        .map((id: string) => videosMap.get(id))
+        .filter(
+          (video: VideoItem | undefined): video is VideoItem => video !== undefined
+        ),
     };
+  } catch (err) {
+    const fallback = getMockChannelFallback(channelId);
+    if (fallback) {
+      return fallback;
+    }
+    throw err;
   }
-
-  const videoData = await apiRequest('videos', {
-    part: 'snippet,contentDetails,statistics',
-    id: videoIds.join(','),
-  });
-
-  const videos: VideoItem[] = (videoData.items || []).map((video: any) => {
-    const views = Number(video.statistics?.viewCount || 0);
-
-    return {
-      id: video.id,
-      title: video.snippet.title,
-      views: `${new Intl.NumberFormat('pt-BR', {
-        notation: 'compact',
-      }).format(views)} visualizações`,
-      postedAt: new Date(video.snippet.publishedAt).toLocaleDateString('pt-BR'),
-      duration: formatDuration(video.contentDetails.duration),
-      thumbnail:
-        video.snippet.thumbnails.high?.url ||
-        video.snippet.thumbnails.medium?.url ||
-        video.snippet.thumbnails.default?.url ||
-        '',
-      videoUrl: `https://www.youtube.com/watch?v=${video.id}`,
-      channel: channelInfo,
-    };
-  });
-
-  const videosMap = new Map(videos.map((video) => [video.id, video]));
-
-  return {
-    channel: channelInfo,
-    videoCount: Number(channel.statistics?.videoCount || 0),
-    videos: videoIds
-      .map((id: string) => videosMap.get(id))
-      .filter((video: VideoItem | undefined): video is VideoItem => video !== undefined),
-  };
 }

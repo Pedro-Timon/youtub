@@ -1,26 +1,26 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Image,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // @ts-ignore
 import { Feather, Ionicons } from '@expo/vector-icons';
-//import type { VideoItem } from '../../constants/mockData';
 import { getChannelById } from '../../services/youtubeApi';
 
 const TABS = ['Início', 'Vídeos', 'Playlists', 'Posts'];
 
 export default function ChannelScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const channelId = Array.isArray(id) ? id[0] : id;
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState('Início');
@@ -38,7 +38,7 @@ export default function ChannelScreen() {
         setLoading(true);
         setError('');
 
-        const result = await getChannelById(id);
+        const result = await getChannelById(channelId);
 
         if (!result) {
           setError('Canal não encontrado.');
@@ -59,10 +59,10 @@ export default function ChannelScreen() {
       }
     }
 
-    if (id) {
+    if (channelId) {
       loadChannel();
     }
-  }, [id]);
+  }, [channelId]);
 
   if (loading) {
     return (
@@ -87,7 +87,8 @@ export default function ChannelScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
+      {/* @ts-ignore */}
+      <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
 
       {/* Cabeçalho */}
       <View style={styles.header}>
@@ -221,6 +222,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+    backgroundColor: '#0f0f0f',
   },
   backButton: {
     padding: 4,
@@ -256,6 +258,7 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     marginRight: 12,
+    backgroundColor: '#272727',
   },
   profileInfo: {
     flex: 1,
@@ -399,4 +402,4 @@ const styles = StyleSheet.create({
     color: '#aaa',
     fontSize: 11,
   },
-});
+} as any);
