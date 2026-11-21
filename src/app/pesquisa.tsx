@@ -1,11 +1,10 @@
-
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   Image,
   Keyboard,
-  Linking,
   StatusBar,
   StyleSheet,
   Text,
@@ -14,7 +13,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 
 // @ts-ignore
 import { Feather } from '@expo/vector-icons';
@@ -75,10 +73,9 @@ export default function PesquisaScreen() {
     }
   }
 
+  // Abre o vídeo dentro do app (tela video/[id]), que também salva no histórico.
   function handleVideoPress(videoId: string) {
-    Linking.openURL(
-      `https://www.youtube.com/watch?v=${videoId}`
-    );
+    router.push(`/video/${videoId}` as any);
   }
 
   function renderVideo({ item }: { item: YouTubeVideo }) {
@@ -124,6 +121,7 @@ export default function PesquisaScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* @ts-ignore */}
       <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
 
       <View style={styles.header}>
@@ -209,6 +207,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 20,
+    backgroundColor: '#0f0f0f',
   },
   headerTitle: {
     color: '#ffffff',
@@ -282,4 +281,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
-});
+} as any);
